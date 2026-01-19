@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro WYSIWYG Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --dark-bg: #1e1e2e;
+            --dark-surface: #2d2d3f;
+            --dark-border: #3d3d5c;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%);
+            min-height: 100vh;
+        }
+        
+        body.light-mode {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+        }
+        
+        .editor-wrapper {
+            background: var(--dark-surface);
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+            border: 1px solid var(--dark-border);
+        }
+        
+        .light-mode .editor-wrapper {
+            background: white;
+            border-color: #e2e8f0;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.1);
+        }
+        
+        .toolbar {
+            background: linear-gradient(180deg, #2d2d3f 0%, #252536 100%);
+            border-bottom: 1px solid var(--dark-border);
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .light-mode .toolbar {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-color: #e2e8f0;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            gap: 2px;
+            padding: 0 8px;
+            border-right: 1px solid var(--dark-border);
+        }
+        
+        .light-mode .toolbar-group {
+            border-color: #e2e8f0;
+        }
+        
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+        
+        .toolbar-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #a0a0b0;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #6366f1;
+            transform: translateY(-1px);
+        }
+        
+        .toolbar-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        
+        .light-mode .toolbar-btn {
+            color: #64748b;
+        }
+        
+        .light-mode .toolbar-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: #6366f1;
+        }
+        
+        .toolbar-select {
+            background: var(--dark-bg);
+            color: #a0a0b0;
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toolbar-select:hover {
+            border-color: var(--primary);
+        }
+        
+        .light-mode .toolbar-select {
+            background: white;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+        
+        .editor-content {
+            min-height: 500px;
+            padding: 24px;
+            outline: none;
+            color: #e0e0e0;
+            font-size: 16px;
+            line-height: 1.7;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+        
+        .light-mode .editor-content {
+            color: #1e293b;
+        }
+        
+        .editor-content:empty::before {
+            content: attr(data-placeholder);
+            color: #6b7280;
+            pointer-events: none;
+        }
+        
+        .editor-content h1 { font-size: 2.5em; font-weight: 700; margin: 0.5em 0; color: #fff; }
+        .editor-content h2 { font-size: 2em; font-weight: 600; margin: 0.5em 0; color: #fff; }
+        .editor-content h3 { font-size: 1.5em; font-weight: 600; margin: 0.5em 0; color: #fff; }
+        .editor-content h4 { font-size: 1.25em; font-weight: 600; margin: 0.5em 0; }
+        
+        .light-mode .editor-content h1,
+        .light-mode .editor-content h2,
+        .light-mode .editor-content h3 {
+            color: #1e293b;
+        }
+        
+        .editor-content ul, .editor-content ol {
+            padding-left: 24px;
+            margin: 0.5em 0;
+        }
+        
+        .editor-content blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 16px;
+            margin: 1em 0;
+            color: #9ca3af;
+            font-style: italic;
+        }
+        
+        .editor-content pre {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+        
+        .editor-content code {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+        
+        .editor-content a {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+        
+        .editor-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1em 0;
+        }
+        
+        .editor-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        
+        .editor-content table td, .editor-content table th {
+            border: 1px solid var(--dark-border);
+            padding: 10px;
+        }
+        
+        .editor-content table th {
+            background: var(--dark-bg);
+        }
+        
+        .light-mode .editor-content table td,
+        .light-mode .editor-content table th {
+            border-color: #e2e8f0;
+        }
+        
+        .light-mode .editor-content table th {
+            background: #f8fafc;
+        }
+        
+        .status-bar {
+            background: var(--dark-bg);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid var(--dark-border);
+        }
+        
+        .light-mode .status-bar {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        
+        .color-picker-wrapper {
+            position: relative;
+        }
+        
+        .color-palette {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .color-palette.show {
+            display: grid;
+        }
+        
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .color-swatch:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: var(--dark-surface);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            border: 1px solid var(--dark-border);
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        
+        .modal h3 {
+            color: white;
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+        }
+        
+        .modal-input {
+            width: 100%;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            margin-bottom: 12px;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .modal-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .modal-btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .modal-btn-secondary {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid var(--dark-border);
+            margin-right: 8px;
+        }
+        
+        .emoji-picker {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            width: 320px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .emoji-picker.show {
+            display: block;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+        }
+        
+        .emoji-item {
+            font-size: 20px;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 6px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        
+        .emoji-item:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+        
+        .fullscreen {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .fullscreen .editor-content {
+            max-height: calc(100vh - 150px);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: #1e1e2e;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .tooltip.show {
+            opacity: 1;
+        }
+        
+        .drop-zone {
+            border: 2px dashed var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 50;
+        }
+        
+        .drop-zone.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .autosave-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .autosave-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .find-replace {
+            background: var(--dark-bg);
+            padding: 12px;
+            display: none;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .find-replace.show {
+            display: flex;
+        }
+        
+        .find-input {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            flex: 1;
+        }
+        
+        .find-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .preview-panel {
+            background: var(--dark-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--dark-border);
+            margin-top: 24px;
+        }
+        
+        .preview-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-content {
+            padding: 24px;
+            color: #e0e0e0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .light-mode .preview-panel {
+            background: white;
+            border-color: #e2e8f0;
+        }
+        
+        .light-mode .preview-content {
+            color: #1e293b;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+        }
+        
+        .tab-btn.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .source-code {
+            background: #1e1e2e;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #a0ffa0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+        
+        .source-code.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="tooltip" class="tooltip"></div>
+    
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-3 flex items-center justify-center gap-4">
+                <i class="fas fa-feather-alt text-indigo-400"></i>
+                Pro WYSIWYG Editor
+            </h1>
+            <p class="text-lg text-gray-400">Профессиональный редактор с полным набором функций</p>
+        </header>
+        
+        <!-- Editor Container -->
+        <div class="editor-wrapper" id="editorWrapper">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <!-- History -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="undo" data-tooltip="Отменить (Ctrl+Z)">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="redo" data-tooltip="Повторить (Ctrl+Y)">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                
+                <!-- Block Format -->
+                <div class="toolbar-group">
+                    <select class="toolbar-select" id="formatBlock">
+                        <option value="p">Параграф</option>
+                        <option value="h1">Заголовок 1</option>
+                        <option value="h2">Заголовок 2</option>
+                        <option value="h3">Заголовок 3</option>
+                        <option value="h4">Заголовок 4</option>
+                        <option value="pre">Код</option>
+                        <option value="blockquote">Цитата</option>
+                    </select>
+                    
+                    <select class="toolbar-select" id="fontName">
+                        <option value="Segoe UI">Segoe UI</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                    
+                    <select class="toolbar-select" id="fontSize">
+                        <option value="1">Мелкий</option>
+                        <option value="2">Малый</option>
+                        <option value="3" selected>Обычный</option>
+                        <option value="4">Средний</option>
+                        <option value="5">Большой</option>
+                        <option value="6">Огромный</option>
+                        <option value="7">Максимальный</option>
+                    </select>
+                </div>
+                
+                <!-- Text Formatting -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="bold" data-tooltip="Жирный (Ctrl+B)">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="italic" data-tooltip="Курсив (Ctrl+I)">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="underline" data-tooltip="Подчёркнутый (Ctrl+U)">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="strikeThrough" data-tooltip="Зачёркнутый">
+                        <i class="fas fa-strikethrough"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="subscript" data-tooltip="Подстрочный">
+                        <i class="fas fa-subscript"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="superscript" data-tooltip="Надстрочный">
+                        <i class="fas fa-superscript"></i>
+                    </button>
+                </div>
+                
+                <!-- Colors -->
+                <div class="toolbar-group">
+                    <div class="color-picker-wrapper">
+                        <button class="toolbar-btn" id="textColorBtn" data-tooltip="Цвет текста">
+                            <i class="fas fa-font" style="border-bottom: 3px solid #ff6b6b;"></i>
+                        </button>
+                        <div class="color-palette" id="textColorPalette"></div>
+                    </div>
+                    <div class="color-picker-wrapper">
+                        <button class="toolbar-btn" id="bgColorBtn" data-tooltip="Цвет фона">
+                            <i class="fas fa-fill-drip" style="color: #ffd93d;"></i>
+                        </button>
+                        <div class="color-palette" id="bgColorPalette"></div>
+                    </div>
+                </div>
+                
+                <!-- Alignment -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="justifyLeft" data-tooltip="По левому краю">
+                        <i class="fas fa-align-left"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="justifyCenter" data-tooltip="По центру">
+                        <i class="fas fa-align-center"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="justifyRight" data-tooltip="По правому краю">
+                        <i class="fas fa-align-right"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="justifyFull" data-tooltip="По ширине">
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+                
+                <!-- Lists -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="insertUnorderedList" data-tooltip="Маркированный список">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="insertOrderedList" data-tooltip="Нумерованный список">
+                        <i class="fas fa-list-ol"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="indent" data-tooltip="Увеличить отступ">
+                        <i class="fas fa-indent"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="outdent" data-tooltip="Уменьшить отступ">
+                        <i class="fas fa-outdent"></i>
+                    </button>
+                </div>
+                
+                <!-- Insert -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="linkBtn" data-tooltip="Вставить ссылку (Ctrl+K)">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="toolbar-btn" id="imageBtn" data-tooltip="Вставить изображение">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button class="toolbar-btn" id="videoBtn" data-tooltip="Вставить видео">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="toolbar-btn" id="tableBtn" data-tooltip="Вставить таблицу">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button class="toolbar-btn" id="hrBtn" data-tooltip="Горизонтальная линия">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+                
+                <!-- Special -->
+                <div class="toolbar-group">
+                    <div class="color-picker-wrapper">
+                        <button class="toolbar-btn" id="emojiBtn" data-tooltip="Эмодзи">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <div class="emoji-picker" id="emojiPicker">
+                            <div class="emoji-grid" id="emojiGrid"></div>
+                        </div>
+                    </div>
+                    <button class="toolbar-btn" id="codeBtn" data-tooltip="Блок кода">
+                        <i class="fas fa-code"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="removeFormat" data-tooltip="Очистить форматирование">
+                        <i class="fas fa-eraser"></i>
+                    </button>
+                </div>
+                
+                <!-- Actions -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="findBtn" data-tooltip="Поиск и замена (Ctrl+F)">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="toolbar-btn" id="printBtn" data-tooltip="Печать (Ctrl+P)">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <button class="toolbar-btn" id="fullscreenBtn" data-tooltip="Полный экран (F11)">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button class="toolbar-btn" id="themeBtn" data-tooltip="Сменить тему">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Find & Replace -->
+            <div class="find-replace" id="findReplace">
+                <input type="text" class="find-input" id="findInput" placeholder="Найти...">
+                <input type="text" class="find-input" id="replaceInput" placeholder="Заменить на...">
+                <button class="toolbar-btn" id="findNextBtn"><i class="fas fa-chevron-down"></i></button>
+                <button class="toolbar-btn" id="replaceBtn">Заменить</button>
+                <button class="toolbar-btn" id="replaceAllBtn">Заменить все</button>
+                <button class="toolbar-btn" id="closeFindBtn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Editor Content -->
+            <div class="relative">
+                <div class="drop-zone" id="dropZone">
+                    <div class="text-center">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-indigo-400 mb-4"></i>
+                        <p class="text-xl text-white">Перетащите изображение сюда</p>
+                    </div>
+                </div>
+                <div 
+                    class="editor-content" 
+                    id="editor" 
+                    contenteditable="true" 
+                    data-placeholder="Начните печатать или перетащите изображение..."
+                ></div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="autosave-indicator">
+                    <div class="autosave-dot"></div>
+                    <span id="autosaveStatus">Автосохранение включено</span>
+                </div>
+                <div class="flex gap-6">
+                    <span>Слов: <strong id="wordCount">0</strong></span>
+                    <span>Символов: <strong id="charCount">0</strong></span>
+                    <span>Параграфов: <strong id="paraCount">0</strong></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preview & Export Panel -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <div class="flex gap-2">
+                    <button class="tab-btn active" data-tab="preview">
+                        <i class="fas fa-eye mr-2"></i>Предпросмотр
+                    </button>
+                    <button class="tab-btn" data-tab="source">
+                        <i class="fas fa-code mr-2"></i>HTML код
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button class="toolbar-btn" id="exportHtmlBtn" style="color: white;" data-tooltip="Экспорт HTML">
+                        <i class="fas fa-file-code"></i>
+                    </button>
+                    <button class="toolbar-btn" id="exportTxtBtn" style="color: white;" data-tooltip="Экспорт TXT">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                    <button class="toolbar-btn" id="copyHtmlBtn" style="color: white;" data-tooltip="Копировать HTML">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-content" id="preview"></div>
+            <pre class="source-code" id="sourceCode"></pre>
+        </div>
+    </div>
+    
+    <!-- Link Modal -->
+    <div class="modal-overlay" id="linkModal">
+        <div class="modal">
+            <h3><i class="fas fa-link mr-2"></i>Вставить ссылку</h3>
+            <input type="text" class="modal-input" id="linkUrl" placeholder="URL (https://...)">
+            <input type="text" class="modal-input" id="linkText" placeholder="Текст ссылки">
+            <div class="flex justify-end mt-4">
+                <button class="modal-btn modal-btn-secondary" id="linkCancelBtn">Отмена</button>
+                <button class="modal-btn modal-btn-primary" id="linkInsertBtn">Вставить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Modal -->
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal">
+            <h3><i class="fas fa-image mr-2"></i>Вставить изображение</h3>
+            <input type="text" class="modal-input" id="imageUrl" placeholder="URL изображения">
+            <input type="text" class="modal-input" id="imageAlt" placeholder="Альтернативный текст">
+            <div class="text-center my-4">
+                <span class="text-gray-400">— или —</span>
+            </div>
+            <input type="file" id="imageFile" accept="image/*" class="modal-input">
+            <div class="flex justify-end mt-4">
+                <button class="modal-btn modal-btn-secondary" id="imageCancelBtn">Отмена</button>
+                <button class="modal-btn modal-btn-primary" id="imageInsertBtn">Вставить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Video Modal -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal">
+            <h3><i class="fas fa-video mr-2"></i>Вставить видео</h3>
+            <input type="text" class="modal-input" id="videoUrl" placeholder="URL видео (YouTube, Vimeo)">
+            <div class="flex justify-end mt-4">
+                <button class="modal-btn modal-btn-secondary" id="videoCancelBtn">Отмена</button>
+                <button class="modal-btn modal-btn-primary" id="videoInsertBtn">Вставить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Table Modal -->
+    <div class="modal-overlay" id="tableModal">
+        <div class="modal">
+            <h3><i class="fas fa-table mr-2"></i>Вставить таблицу</h3>
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="text-gray-400 text-sm">Строк</label>
+                    <input type="number" class="modal-input" id="tableRows" value="3" min="1" max="20">
+                </div>
+                <div class="flex-1">
+                    <label class="text-gray-400 text-sm">Столбцов</label>
+                    <input type="number" class="modal-input" id="tableCols" value="3" min="1" max="10">
+                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button class="modal-btn modal-btn-secondary" id="tableCancelBtn">Отмена</button>
+                <button class="modal-btn modal-btn-primary" id="tableInsertBtn">Вставить</button>
+            </div>
+        </div>
+    </div>
+    
+    <input type="file" id="fileInput" accept="image/*" class="hidden">
+    
+    <script>
+        // Editor Setup
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const sourceCode = document.getElementById('sourceCode');
+        const tooltip = document.getElementById('tooltip');
+        
+        // Colors
+        const colors = [
+            '#ff6b6b', '#ee5a24', '#ffd93d', '#6bcb77', '#4d96ff', '#6c5ce7', '#a55eea', '#fd79a8',
+            '#ffffff', '#dfe6e9', '#b2bec3', '#636e72', '#2d3436', '#000000', '#00cec9', '#81ecec',
+            '#fab1a0', '#ffeaa7', '#55efc4', '#74b9ff', '#a29bfe', '#fd79a8', '#e17055', '#d63031'
+        ];
+        
+        // Emojis
+        const emojis = [
+            '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘',
+            '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐',
+            '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢',
+            '👍', '👎', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻',
+            '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖',
+            '⭐', '🌟', '✨', '💫', '🔥', '💥', '🎉', '🎊', '🎈', '🎁', '🏆', '🥇', '🥈', '🥉', '⚡', '💡'
+        ];
+        
+        // Initialize color palettes
+        function initColorPalettes() {
+            const textPalette = document.getElementById('textColorPalette');
+            const bgPalette = document.getElementById('bgColorPalette');
+            
+            colors.forEach(color => {
+                const swatch1 = document.createElement('div');
+                swatch1.className = 'color-swatch';
+                swatch1.style.background = color;
+                swatch1.onclick = () => {
+                    document.execCommand('foreColor', false, color);
+                    textPalette.classList.remove('show');
+                    updatePreview();
+                };
+                textPalette.appendChild(swatch1);
+                
+                const swatch2 = document.createElement('div');
+                swatch2.className = 'color-swatch';
+                swatch2.style.background = color;
+                swatch2.onclick = () => {
+                    document.execCommand('hiliteColor', false, color);
+                    bgPalette.classList.remove('show');
+                    updatePreview();
+                };
+                bgPalette.appendChild(swatch2);
+            });
+        }
+        
+        // Initialize emoji picker
+        function initEmojiPicker() {
+            const grid = document.getElementById('emojiGrid');
+            emojis.forEach(emoji => {
+                const item = document.createElement('div');
+                item.className = 'emoji-item';
+                item.textContent = emoji;
+                item.onclick = () => {
+                    document.execCommand('insertText', false, emoji);
+                    document.getElementById('emojiPicker').classList.remove('show');
+                    updatePreview();
+                };
+                grid.appendChild(item);
+            });
+        }
+        
+        // Toggle color palette
+        document.getElementById('textColorBtn').onclick = (e) => {
+            e.stopPropagation();
+            document.getElementById('textColorPalette').classList.toggle('show');
+            document.getElementById('bgColorPalette').classList.remove('show');
+            document.getElementById('emojiPicker').classList.remove('show');
+        };
+        
+        document.getElementById('bgColorBtn').onclick = (e) => {
+            e.stopPropagation();
+            document.getElementById('bgColorPalette').classList.toggle('show');
+            document.getElementById('textColorPalette').classList.remove('show');
+            document.getElementById('emojiPicker').classList.remove('show');
+        };
+        
+        document.getElementById('emojiBtn').onclick = (e) => {
+            e.stopPropagation();
+            document.getElementById('emojiPicker').classList.toggle('show');
+            document.getElementById('textColorPalette').classList.remove('show');
+            document.getElementById('bgColorPalette').classList.remove('show');
+        };
+        
+        // Close popups on outside click
+        document.addEventListener('click', () => {
+            document.getElementById('textColorPalette').classList.remove('show');
+            document.getElementById('bgColorPalette').classList.remove('show');
+            document.getElementById('emojiPicker').classList.remove('show');
+        });
+        
+        // Toolbar commands
+        document.querySelectorAll('[data-command]').forEach(btn => {
+            btn.onclick = () => {
+                document.execCommand(btn.dataset.command, false, null);
+                editor.focus();
+                updateToolbarState();
+                updatePreview();
+            };
+        });
+        
+        // Format selects
+        document.getElementById('formatBlock').onchange = function() {
+            document.execCommand('formatBlock', false, this.value);
+            updatePreview();
+        };
+        
+        document.getElementById('fontName').onchange = function() {
+            document.execCommand('fontName', false, this.value);
+            updatePreview();
+        };
+        
+        document.getElementById('fontSize').onchange = function() {
+            document.execCommand('fontSize', false, this.value);
+            updatePreview();
+        };
+        
+        // Horizontal rule
+        document.getElementById('hrBtn').onclick = () => {
+            document.execCommand('insertHorizontalRule', false, null);
+            updatePreview();
+        };
+        
+        // Code block
+        document.getElementById('codeBtn').onclick = () => {
+            const selection = window.getSelection();
+            const text = selection.toString();
+            document.execCommand('insertHTML', false, `<pre><code>${text || 'код'}</code></pre>`);
+            updatePreview();
+        };
+        
+        // Link Modal
+        const linkModal = document.getElementById('linkModal');
+        let savedSelection = null;
+        
+        document.getElementById('linkBtn').onclick = () => {
+            savedSelection = saveSelection();
+            linkModal.classList.add('show');
+        };
+        
+        document.getElementById('linkCancelBtn').onclick = () => {
+            linkModal.classList.remove('show');
+        };
+        
+        document.getElementById('linkInsertBtn').onclick = () => {
+            const url = document.getElementById('linkUrl').value;
+            const text = document.getElementById('linkText').value || url;
+            
+            if (url) {
+                restoreSelection(savedSelection);
+                document.execCommand('insertHTML', false, `<a href="${url}" target="_blank">${text}</a>`);
+                linkModal.classList.remove('show');
+                document.getElementById('linkUrl').value = '';
+                document.getElementById('linkText').value = '';
+                updatePreview();
+            }
+        };
+        
+        // Image Modal
+        const imageModal = document.getElementById('imageModal');
+        
+        document.getElementById('imageBtn').onclick = () => {
+            savedSelection = saveSelection();
+            imageModal.classList.add('show');
+        };
+        
+        document.getElementById('imageCancelBtn').onclick = () => {
+            imageModal.classList.remove('show');
+        };
+        
+        document.getElementById('imageInsertBtn').onclick = () => {
+            const url = document.getElementById('imageUrl').value;
+            const alt = document.getElementById('imageAlt').value || 'Image';
+            const file = document.getElementById('imageFile').files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    restoreSelection(savedSelection);
+                    document.execCommand('insertHTML', false, `<img src="${e.target.result}" alt="${alt}">`);
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            } else if (url) {
+                restoreSelection(savedSelection);
+                document.execCommand('insertHTML', false, `<img src="${url}" alt="${alt}">`);
+                updatePreview();
+            }
+            
+            imageModal.classList.remove('show');
+            document.getElementById('imageUrl').value = '';
+            document.getElementById('imageAlt').value = '';
+            document.getElementById('imageFile').value = '';
+        };
+        
+        // Video Modal
+        const videoModal = document.getElementById('videoModal');
+        
+        document.getElementById('videoBtn').onclick = () => {
+            savedSelection = saveSelection();
+            videoModal.classList.add('show');
+        };
+        
+        document.getElementById('videoCancelBtn').onclick = () => {
+            videoModal.classList.remove('show');
+        };
+        
+        document.getElementById('videoInsertBtn').onclick = () => {
+            let url = document.getElementById('videoUrl').value;
+            
+            if (url) {
+                // Convert YouTube URL to embed
+                if (url.includes('youtube.com/watch')) {
+                    const videoId = url.split('v=')[1]?.split('&')[0];
+                    url = `https://www.youtube.com/embed/${videoId}`;
+                } else if (url.includes('youtu.be/')) {
+                    const videoId = url.split('youtu.be/')[1];
+                    url = `https://www.youtube.com/embed/${videoId}`;
+                }
+                
+                restoreSelection(savedSelection);
+                document.execCommand('insertHTML', false, 
+                    `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1em 0;">
+                        <iframe src="${url}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
+                    </div>`
+                );
+                videoModal.classList.remove('show');
+                document.getElementById('videoUrl').value = '';
+                updatePreview();
+            }
+        };
+        
+        // Table Modal
+        const tableModal = document.getElementById('tableModal');
+        
+        document.getElementById('tableBtn').onclick = () => {
+            savedSelection = saveSelection();
+            tableModal.classList.add('show');
+        };
+        
+        document.getElementById('tableCancelBtn').onclick = () => {
+            tableModal.classList.remove('show');
+        };
+        
+        document.getElementById('tableInsertBtn').onclick = () => {
+            const rows = parseInt(document.getElementById('tableRows').value) || 3;
+            const cols = parseInt(document.getElementById('tableCols').value) || 3;
+            
+            let tableHtml = '<table><thead><tr>';
+            for (let c = 0; c < cols; c++) {
+                tableHtml += '<th>Заголовок</th>';
+            }
+            tableHtml += '</tr></thead><tbody>';
+            for (let r = 0; r < rows - 1; r++) {
+                tableHtml += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    tableHtml += '<td>Ячейка</td>';
+                }
+                tableHtml += '</tr>';
+            }
+            tableHtml += '</tbody></table>';
+            
+            restoreSelection(savedSelection);
+            document.execCommand('insertHTML', false, tableHtml);
+            tableModal.classList.remove('show');
+            updatePreview();
+        };
+        
+        // Selection helpers
+        function saveSelection() {
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                return sel.getRangeAt(0);
+            }
+            return null;
+        }
+        
+        function restoreSelection(range) {
+            if (range) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+        
+        // Drag & Drop
+        const dropZone = document.getElementById('dropZone');
+        
+        editor.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        });
+        
+        editor.addEventListener('dragleave', () => {
+            dropZone.classList.remove('active');
+        });
+        
+        editor.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    document.execCommand('insertHTML', false, `<img src="${evt.target.result}" alt="Dropped image">`);
+                    updatePreview();
+                };
+                reader.readAsDataURL(files[0]);
+            }
+        });
+        
+        // Find & Replace
+        document.getElementById('findBtn').onclick = () => {
+            document.getElementById('findReplace').classList.toggle('show');
+        };
+        
+        document.getElementById('closeFindBtn').onclick = () => {
+            document.getElementById('findReplace').classList.remove('show');
+        };
+        
+        document.getElementById('findNextBtn').onclick = () => {
+            const text = document.getElementById('findInput').value;
+            if (text) {
+                window.find(text);
+            }
+        };
+        
+        document.getElementById('replaceBtn').onclick = () => {
+            const findText = document.getElementById('findInput').value;
+            const replaceText = document.getElementById('replaceInput').value;
+            
+            if (findText) {
+                editor.innerHTML = editor.innerHTML.replace(findText, replaceText);
+                updatePreview();
+            }
+        };
+        
+        document.getElementById('replaceAllBtn').onclick = () => {
+            const findText = document.getElementById('findInput').value;
+            const replaceText = document.getElementById('replaceInput').value;
+            
+            if (findText) {
+                editor.innerHTML = editor.innerHTML.split(findText).join(replaceText);
+                updatePreview();
+            }
+        };
+        
+        // Fullscreen
+        document.getElementById('fullscreenBtn').onclick = () => {
+            const wrapper = document.getElementById('editorWrapper');
+            wrapper.classList.toggle('fullscreen');
+            const icon = document.querySelector('#fullscreenBtn i');
+            icon.className = wrapper.classList.contains('fullscreen') ? 'fas fa-compress' : 'fas fa-expand';
+        };
+        
+        // Theme toggle
+        document.getElementById('themeBtn').onclick = () => {
+            document.body.classList.toggle('light-mode');
+            const icon = document.querySelector('#themeBtn i');
+            icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
+        };
+        
+        // Print
+        document.getElementById('printBtn').onclick = () => {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Print</title>
+                <style>body{font-family:Arial,sans-serif;padding:40px;}</style>
+                </head><body>${editor.innerHTML}</body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        };
+        
+        // Update preview & stats
+        function updatePreview() {
+            preview.innerHTML = editor.innerHTML;
+            sourceCode.textContent = editor.innerHTML;
+            
+            const text = editor.innerText;
+            document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('charCount').textContent = text.length;
+            document.getElementById('paraCount').textContent = editor.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').length || (text.trim() ? 1 : 0);
+            
+            // Autosave
+            localStorage.setItem('editorContent', editor.innerHTML);
+            document.getElementById('autosaveStatus').textContent = 'Сохранено ' + new Date().toLocaleTimeString();
+        }
+        
+        // Update toolbar state
+        function updateToolbarState() {
+            document.querySelectorAll('[data-command]').forEach(btn => {
+                const command = btn.dataset.command;
+                if (document.queryCommandState(command)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Tooltips
+        document.querySelectorAll('[data-tooltip]').forEach(el => {
+            el.addEventListener('mouseenter', (e) => {
+                tooltip.textContent = e.target.dataset.tooltip || e.target.closest('[data-tooltip]').dataset.tooltip;
+                tooltip.classList.add('show');
+                const rect = e.target.getBoundingClientRect();
+                tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+                tooltip.style.top = rect.bottom + 8 + 'px';
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        });
+        
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (btn.dataset.tab === 'preview') {
+                    preview.style.display = 'block';
+                    sourceCode.classList.remove('show');
+                } else {
+                    preview.style.display = 'none';
+                    sourceCode.classList.add('show');
+                }
+            };
+        });
+        
+        // Export functions
+        document.getElementById('exportHtmlBtn').onclick = () => {
+            const blob = new Blob([editor.innerHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.html';
+            a.click();
+        };
+        
+        document.getElementById('exportTxtBtn').onclick = () => {
+            const blob = new Blob([editor.innerText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.txt';
+            a.click();
+        };
+        
+        document.getElementById('copyHtmlBtn').onclick = () => {
+            navigator.clipboard.writeText(editor.innerHTML).then(() => {
+                document.getElementById('autosaveStatus').textContent = 'HTML скопирован!';
+            });
+        };
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'b':
+                        e.preventDefault();
+                        document.execCommand('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        document.execCommand('italic');
+                        break;
+                    case 'u':
+                        e.preventDefault();
+                        document.execCommand('underline');
+                        break;
+                    case 'k':
+                        e.preventDefault();
+                        document.getElementById('linkBtn').click();
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        document.getElementById('findBtn').click();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        updatePreview();
+                        document.getElementById('autosaveStatus').textContent = 'Сохранено!';
+                        break;
+                }
+            }
+            
+            if (e.key === 'F11') {
+                e.preventDefault();
+                document.getElementById('fullscreenBtn').click();
+            }
+            
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+                document.getElementById('editorWrapper').classList.remove('fullscreen');
+            }
+        });
+        
+        // Editor events
+        editor.addEventListener('input', () => {
+            updatePreview();
+            updateToolbarState();
+        });
+        
+        editor.addEventListener('mouseup', updateToolbarState);
+        editor.addEventListener('keyup', updateToolbarState);
+        
+        // Initialize
+        initColorPalettes();
+        initEmojiPicker();
+        
+        // Load saved content
+        const saved = localStorage.getItem('editorContent');
+        if (saved) {
+            editor.innerHTML = saved;
+        } else {
+            editor.innerHTML = `
+                <h1>🎉 Добро пожаловать в Pro WYSIWYG Editor!</h1>
+                <p>Это <strong>профессиональный</strong> текстовый редактор с <em>полным набором функций</em>:</p>
+                <ul>
+                    <li>✨ <strong>Форматирование текста</strong> — жирный, курсив, подчёркивание, зачёркивание</li>
+                    <li>🎨 <strong>Цвета</strong> — выбор цвета текста и фона</li>
+                    <li>📝 <strong>Заголовки</strong> — от H1 до H4</li>
+                    <li>📋 <strong>Списки</strong> — маркированные и нумерованные</li>
+                    <li>🖼️ <strong>Медиа</strong> — изображения и видео</li>
+                    <li>🔗 <strong>Ссылки</strong> — вставка гиперссылок</li>
+                    <li>📊 <strong>Таблицы</strong> — создание таблиц</li>
+                    <li>😀 <strong>Эмодзи</strong> — вставка эмодзи</li>
+                    <li>🔍 <strong>Поиск</strong> — поиск и замена текста</li>
+                    <li>💾 <strong>Автосохранение</strong> — ваша работа сохраняется автоматически</li>
+                    <li>📤 <strong>Экспорт</strong> — в HTML и TXT форматы</li>
+                    <li>🌙 <strong>Тёмная тема</strong> — переключение между темами</li>
+                </ul>
+                <blockquote>Попробуйте все функции и создайте что-то потрясающее!</blockquote>
+                <p>Начните редактирование прямо сейчас! 🚀</p>
+            `;
+        }
+        
+        updatePreview();
+    </script>
+</body>
+</html>
