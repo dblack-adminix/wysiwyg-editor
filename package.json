@@ -31,6 +31,14 @@
     "lint": "eslint src --ext ts,tsx",
     "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dblack-adminix/wysiwyg-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dblack-adminix/wysiwyg-editor/issues"
+  },
+  "homepage": "https://github.com/dblack-adminix/wysiwyg-editor#readme",
   "keywords": [
     "wysiwyg",
     "editor",
