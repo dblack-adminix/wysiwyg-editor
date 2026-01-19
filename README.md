@@ -1,5 +1,11 @@
 # Pro WYSIWYG Editor
 
+[![npm version](https://img.shields.io/npm/v/wysiwyg-editor-3lab)](https://www.npmjs.com/package/wysiwyg-editor-3lab)
+[![npm downloads](https://img.shields.io/npm/dm/wysiwyg-editor-3lab)](https://www.npmjs.com/package/wysiwyg-editor-3lab)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/wysiwyg-editor-3lab)](https://bundlephobia.com/package/wysiwyg-editor-3lab)
+[![license](https://img.shields.io/npm/l/wysiwyg-editor-3lab)](https://github.com/3lab/wysiwyg-editor/blob/main/LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue)](https://www.typescriptlang.org/)
+
 Профессиональный WYSIWYG редактор для React с headless архитектурой. Полный набор функций для создания богатого текстового контента.
 
 ## ✨ Особенности
@@ -18,11 +24,11 @@
 ## 📦 Установка
 
 ```bash
-npm install @3lab/wysiwyg-editor
+npm install wysiwyg-editor-3lab
 # или
-yarn add @3lab/wysiwyg-editor
+yarn add wysiwyg-editor-3lab
 # или
-pnpm add @3lab/wysiwyg-editor
+pnpm add wysiwyg-editor-3lab
 ```
 
 **Важно:** Добавьте Font Awesome в ваш проект:
@@ -36,7 +42,8 @@ pnpm add @3lab/wysiwyg-editor
 ### Базовое использование
 
 ```tsx
-import { WysiwygEditor } from '@3lab/wysiwyg-editor';
+import { WysiwygEditor } from 'wysiwyg-editor-3lab';
+import 'wysiwyg-editor-3lab/style.css';
 
 function App() {
   return <WysiwygEditor placeholder="Начните печатать..." />;
@@ -47,7 +54,8 @@ function App() {
 
 ```tsx
 import { useState } from 'react';
-import { WysiwygEditor, EditorMeta } from '@3lab/wysiwyg-editor';
+import { WysiwygEditor, EditorMeta } from 'wysiwyg-editor-3lab';
+import 'wysiwyg-editor-3lab/style.css';
 
 function App() {
   const [html, setHtml] = useState('');
@@ -70,7 +78,8 @@ function App() {
 ### Uncontrolled с автосохранением
 
 ```tsx
-import { WysiwygEditor } from '@3lab/wysiwyg-editor';
+import { WysiwygEditor } from 'wysiwyg-editor-3lab';
+import 'wysiwyg-editor-3lab/style.css';
 
 function App() {
   return (
