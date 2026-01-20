@@ -84,11 +84,20 @@ export function getThemeConfig(themeName: ThemeName, customTheme?: ThemeConfig):
 }
 
 export function generateThemeCSS(themeConfig: ThemeConfig): string {
-  const vars = Object.entries(themeConfig)
-    .map(([key, value]) => {
-      const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      return `${cssVarName}: ${value};`;
-    })
+  // Преобразуем camelCase в kebab-case для CSS переменных
+  const cssVars: Record<string, string> = {};
+  
+  Object.entries(themeConfig).forEach(([key, value]) => {
+    if (value) {
+      // Преобразуем camelCase в kebab-case
+      const cssVarName = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+      cssVars[cssVarName] = value;
+    }
+  });
+
+  // Создаём CSS переменные с правильными именами
+  const vars = Object.entries(cssVars)
+    .map(([key, value]) => `--${key}: ${value};`)
     .join('\n  ');
 
   return `:root {\n  ${vars}\n}`;
