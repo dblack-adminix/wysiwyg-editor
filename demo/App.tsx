@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { WysiwygEditor, EditorMeta, DEFAULT_CONTENT } from '../src';
+import { PreviewPanelTest } from './PreviewPanelTest';
 
 function App() {
   const [html, setHtml] = useState('');
   const [meta, setMeta] = useState<EditorMeta>({ wordCount: 0, charCount: 0, paragraphCount: 0 });
+  const [showTest, setShowTest] = useState(false);
 
   const handleChange = (newHtml: string, newMeta: EditorMeta) => {
     setHtml(newHtml);
@@ -63,25 +65,47 @@ function App() {
       background: 'linear-gradient(135deg, #1e1e2e 0%, #2d2d3f 100%)',
       padding: '32px'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <header style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ 
-            fontSize: '48px', 
-            fontWeight: 'bold', 
-            color: 'white',
-            marginBottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px'
-          }}>
-            <span>✨</span>
-            Pro WYSIWYG Editor
-          </h1>
-          <p style={{ fontSize: '18px', color: '#9ca3af' }}>
-            Профессиональный редактор с полным набором функций
-          </p>
-        </header>
+      {showTest ? (
+        <div>
+          <button
+            onClick={() => setShowTest(false)}
+            style={{
+              padding: '10px 20px',
+              marginBottom: '20px',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ← Вернуться к примерам
+          </button>
+          <PreviewPanelTest />
+        </div>
+      ) : (
+        <>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <header style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <h1 style={{ 
+                fontSize: '48px', 
+                fontWeight: 'bold', 
+                color: 'white',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px'
+              }}>
+                <span>✨</span>
+                Pro WYSIWYG Editor
+              </h1>
+              <p style={{ fontSize: '18px', color: '#9ca3af' }}>
+                Профессиональный редактор с полным набором функций
+              </p>
+            </header>
 
         {/* Controlled Example */}
         <div style={{ marginBottom: '48px' }}>
@@ -172,6 +196,29 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Test Button */}
+      <div style={{ maxWidth: '1200px', margin: '32px auto 0' }}>
+        <button
+          onClick={() => setShowTest(true)}
+          style={{
+            width: '100%',
+            padding: '16px',
+            backgroundColor: '#20c997',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            marginTop: '32px'
+          }}
+        >
+          🧪 Тест независимости панели предпросмотра
+        </button>
+      </div>
+    </div>
+      )}
     </div>
   );
 }
