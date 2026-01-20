@@ -3,7 +3,7 @@ import { createRoot, Root } from 'react-dom/client';
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { WysiwygEditorProps } from '../types';
-import { getThemeConfig, generateThemeCSS } from '../themes';
+import { getThemeConfig } from '../themes';
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
 import { FindReplace } from './FindReplace';
@@ -57,26 +57,14 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   // Get theme configuration
   const themeConfig = getThemeConfig(themeName === 'custom' ? 'custom' : themeName, customTheme);
   
-  // Generate CSS variables
-  useEffect(() => {
-    const css = generateThemeCSS(themeConfig);
-    const styleId = 'wysiwyg-theme-vars';
-    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
-    
-    if (!styleElement) {
-      styleElement = document.createElement('style');
-      styleElement.id = styleId;
-      document.head.appendChild(styleElement);
+  // Generate CSS variables and apply to component
+  const themeStyles = Object.entries(themeConfig).reduce((acc, [key, value]) => {
+    if (value) {
+      const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+      acc[cssVarName as any] = value;
     }
-    
-    styleElement.textContent = css;
-    
-    return () => {
-      if (styleElement && styleElement.parentNode) {
-        styleElement.parentNode.removeChild(styleElement);
-      }
-    };
-  }, [themeConfig]);
+    return acc;
+  }, {} as Record<string, string>);
 
   const {
     editorRef,
@@ -382,9 +370,10 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
         style={{
           ...style,
           ...customStyles,
+          ...themeStyles,
           display: enablePreviewPanel && previewPosition === 'right' ? 'grid' : 'block',
           gridTemplateColumns: enablePreviewPanel && previewPosition === 'right' ? '1fr 1fr' : undefined,
-        }}
+        } as React.CSSProperties}
       >
         <div
           style={{
