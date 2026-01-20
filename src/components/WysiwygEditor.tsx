@@ -55,15 +55,6 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
 
   // Get theme configuration
   const themeConfig = getThemeConfig(themeName === 'custom' ? 'custom' : themeName, customTheme);
-  
-  // Generate CSS variables and apply to component
-  const themeStyles = Object.entries(themeConfig).reduce((acc, [key, value]) => {
-    if (value) {
-      const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      acc[cssVarName as any] = value;
-    }
-    return acc;
-  }, {} as Record<string, string>);
 
   const {
     editorRef,
@@ -95,6 +86,19 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   const codeBlockRootsRef = useRef<Map<Element, Root>>(new Map());
 
   const isLight = theme === 'light';
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Apply CSS variables to wrapper element
+  useEffect(() => {
+    if (wrapperRef.current) {
+      Object.entries(themeConfig).forEach(([key, value]) => {
+        if (value) {
+          const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          wrapperRef.current?.style.setProperty(cssVarName, value);
+        }
+      });
+    }
+  }, [themeConfig]);
 
   // Render CodeBlock components for all code blocks
   useEffect(() => {
@@ -365,14 +369,20 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   return (
     <>
       <div
+        ref={wrapperRef}
         className={`wysiwyg-editor-wrapper ${isLight ? 'light' : ''} ${isFullscreen ? 'fullscreen' : ''} ${customClassName} ${className}`}
         style={{
           ...style,
           ...customStyles,
-          ...themeStyles,
           display: enablePreviewPanel && previewPosition === 'right' ? 'grid' : 'block',
           gridTemplateColumns: enablePreviewPanel && previewPosition === 'right' ? '1fr 1fr' : undefined,
         } as React.CSSProperties}
+        {...Object.fromEntries(
+          Object.entries(themeConfig).map(([key, value]) => [
+            `data-${key}`,
+            value
+          ])
+        )}
       >
         <div
           style={{

@@ -195,6 +195,38 @@ function App() {
             </div>
           </div>
 
+          {/* Custom Theme Test */}
+          <div style={{ marginBottom: '48px', marginTop: '48px' }}>
+            <h2 style={{ color: 'white', marginBottom: '16px' }}>Custom Theme Test (CSS Variables)</h2>
+            <p style={{ color: '#9ca3af', marginBottom: '16px' }}>
+              Редактор с пользовательской темой - проверьте, применяются ли цвета:
+            </p>
+            <WysiwygEditor
+              placeholder="Тест пользовательской темы..."
+              theme="dark"
+              customTheme={{
+                primary: '#ff6b6b',
+                primaryDark: '#ee5a52',
+                primaryLight: '#ffe0e0',
+                bgPrimary: '#1a1a2e',
+                bgSecondary: '#16213e',
+                textPrimary: '#eaeaea',
+                textSecondary: '#b0b0b0',
+              }}
+              enablePreviewPanel={true}
+            />
+            <div style={{ 
+              marginTop: '12px', 
+              padding: '12px', 
+              background: 'rgba(255, 107, 107, 0.1)',
+              borderRadius: '8px',
+              color: '#ff9999',
+              fontSize: '13px'
+            }}>
+              🎨 <strong>Ожидается:</strong> Кнопки должны быть красными (#ff6b6b), фон тёмным (#1a1a2e)
+            </div>
+          </div>
+
           {/* Test Button */}
           <div style={{ marginTop: '32px' }}>
             <button
