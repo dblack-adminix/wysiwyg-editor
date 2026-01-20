@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { WysiwygEditor, PreviewPanel } from '../src/index';
+import { WysiwygEditor, PreviewPanel } from '../src';
 import '../src/WysiwygEditor.module.css';
 
 /**
