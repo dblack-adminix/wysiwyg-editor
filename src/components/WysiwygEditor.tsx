@@ -3,6 +3,7 @@ import { createRoot, Root } from 'react-dom/client';
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { WysiwygEditorProps } from '../types';
+import { getThemeConfig, generateThemeCSS } from '../themes';
 import { Toolbar } from './Toolbar';
 import { StatusBar } from './StatusBar';
 import { FindReplace } from './FindReplace';
@@ -27,6 +28,9 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
     autosaveKey = 'wysiwyg-editor-content',
     autosaveIntervalMs = 2000,
     enablePreviewPanel = true,
+    previewPosition = 'right',
+    previewWidth,
+    previewHeight,
     enableSourceTab = true,
     enableFindReplace = true,
     enablePrint = true,
@@ -39,12 +43,40 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
     onImageUpload,
     onVideoUpload,
     theme: initialTheme = 'dark',
+    themeName = 'dark',
+    customTheme,
+    customClassName = '',
+    customStyles,
     sanitizeHtml = false,
     mobileOptimized = true
   } = props;
 
   const isMobile = useIsMobile();
   const shouldOptimizeForMobile = mobileOptimized && isMobile;
+
+  // Get theme configuration
+  const themeConfig = getThemeConfig(themeName === 'custom' ? 'custom' : themeName, customTheme);
+  
+  // Generate CSS variables
+  useEffect(() => {
+    const css = generateThemeCSS(themeConfig);
+    const styleId = 'wysiwyg-theme-vars';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      document.head.appendChild(styleElement);
+    }
+    
+    styleElement.textContent = css;
+    
+    return () => {
+      if (styleElement && styleElement.parentNode) {
+        styleElement.parentNode.removeChild(styleElement);
+      }
+    };
+  }, [themeConfig]);
 
   const {
     editorRef,
@@ -346,53 +378,87 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   return (
     <>
       <div
-        className={`${styles.editorWrapper} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''} ${className}`}
-        style={style}
+        className={`${styles.editorWrapper} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''} ${customClassName} ${className}`}
+        style={{
+          ...style,
+          ...customStyles,
+          display: enablePreviewPanel && previewPosition === 'right' ? 'grid' : 'block',
+          gridTemplateColumns: enablePreviewPanel && previewPosition === 'right' ? '1fr 1fr' : undefined,
+        }}
       >
-        <Toolbar
-          core={core}
-          theme={theme}
-          onLinkClick={openLinkModal}
-          onImageClick={openImageModal}
-          onVideoClick={openVideoModal}
-          onTableClick={openTableModal}
-          onFindClick={() => setShowFindReplace(prev => !prev)}
-          onFullscreenClick={toggleFullscreen}
-          onPrintClick={() => setShowPrintModal(true)}
-          isFullscreen={isFullscreen}
-          allowImages={allowImages}
-          allowVideoEmbeds={allowVideoEmbeds}
-          allowTables={allowTables}
-          enableFindReplace={enableFindReplace}
-          enablePrint={enablePrint}
-          enableFullscreen={enableFullscreen}
-          isMobile={shouldOptimizeForMobile}
-        />
-
-        {enableFindReplace && (
-          <FindReplace
-            isOpen={showFindReplace}
-            onClose={() => setShowFindReplace(false)}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+          }}
+        >
+          <Toolbar
             core={core}
             theme={theme}
+            onLinkClick={openLinkModal}
+            onImageClick={openImageModal}
+            onVideoClick={openVideoModal}
+            onTableClick={openTableModal}
+            onFindClick={() => setShowFindReplace(prev => !prev)}
+            onFullscreenClick={toggleFullscreen}
+            onPrintClick={() => setShowPrintModal(true)}
+            isFullscreen={isFullscreen}
+            allowImages={allowImages}
+            allowVideoEmbeds={allowVideoEmbeds}
+            allowTables={allowTables}
+            enableFindReplace={enableFindReplace}
+            enablePrint={enablePrint}
+            enableFullscreen={enableFullscreen}
+            isMobile={shouldOptimizeForMobile}
           />
+
+          {enableFindReplace && (
+            <FindReplace
+              isOpen={showFindReplace}
+              onClose={() => setShowFindReplace(false)}
+              core={core}
+              theme={theme}
+            />
+          )}
+
+          <div
+            ref={editorRef}
+            className={`${styles.editorContent} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''}`}
+            style={{ outline: 'none', flex: 1, overflow: 'auto' }}
+          />
+
+          <StatusBar
+            meta={stats}
+            theme={theme}
+            enableAutosave={enableAutosave}
+            lastSaveTime={null}
+          />
+        </div>
+
+        {enablePreviewPanel && previewPosition !== 'none' && (
+          <div
+            style={{
+              width: previewWidth ? (typeof previewWidth === 'number' ? `${previewWidth}px` : previewWidth) : undefined,
+              height: previewHeight ? (typeof previewHeight === 'number' ? `${previewHeight}px` : previewHeight) : undefined,
+              overflow: 'auto',
+              borderLeft: previewPosition === 'right' ? '1px solid var(--border-color, #ddd)' : undefined,
+              borderTop: previewPosition === 'bottom' ? '1px solid var(--border-color, #ddd)' : undefined,
+            }}
+          >
+            <PreviewPanel
+              html={core.getHTML()}
+              theme={theme}
+              onExportHtml={() => core.export.downloadHTML()}
+              onExportText={() => core.export.downloadText()}
+              onCopyHtml={() => core.export.copyHTML()}
+              enableSourceTab={enableSourceTab}
+            />
+          </div>
         )}
-
-        <div
-          ref={editorRef}
-          className={`${styles.editorContent} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''}`}
-          style={{ outline: 'none' }}
-        />
-
-        <StatusBar
-          meta={stats}
-          theme={theme}
-          enableAutosave={enableAutosave}
-          lastSaveTime={null}
-        />
       </div>
 
-      {enablePreviewPanel && (
+      {enablePreviewPanel && previewPosition === 'none' && (
         <PreviewPanel
           html={core.getHTML()}
           theme={theme}

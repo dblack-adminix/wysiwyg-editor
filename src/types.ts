@@ -1,4 +1,23 @@
 export type Theme = 'dark' | 'light' | 'auto';
+export type ThemeName = 'light' | 'dark' | 'minimal' | 'colorful' | 'custom';
+export type PreviewPosition = 'right' | 'bottom' | 'none';
+
+export interface ThemeConfig {
+  primary?: string;
+  primaryDark?: string;
+  primaryLight?: string;
+  bgPrimary?: string;
+  bgSecondary?: string;
+  textPrimary?: string;
+  textSecondary?: string;
+  borderRadius?: string;
+  borderWidth?: string;
+  fontFamily?: string;
+  fontSize?: string;
+  shadowSm?: string;
+  shadowMd?: string;
+  shadowLg?: string;
+}
 
 export type EditorCommand =
   | 'bold' | 'italic' | 'underline' | 'strikeThrough'
@@ -43,6 +62,9 @@ export interface WysiwygEditorProps {
   autosaveKey?: string;
   autosaveIntervalMs?: number;
   enablePreviewPanel?: boolean;
+  previewPosition?: PreviewPosition;
+  previewWidth?: string | number;
+  previewHeight?: string | number;
   enableSourceTab?: boolean;
   enableFindReplace?: boolean;
   enablePrint?: boolean;
@@ -61,6 +83,10 @@ export interface WysiwygEditorProps {
   
   // Appearance
   theme?: Theme;
+  themeName?: ThemeName;
+  customTheme?: ThemeConfig;
+  customClassName?: string;
+  customStyles?: React.CSSProperties;
   toolbarConfig?: Partial<ToolbarConfig>;
   mobileOptimized?: boolean;
   

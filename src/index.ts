@@ -30,6 +30,12 @@ export type { UseWysiwygEditorOptions, UseWysiwygEditorReturn } from './hooks/us
 // UI COMPONENTS (Optional)
 // ============================================
 export { WysiwygEditor } from './components/WysiwygEditor';
+export { PreviewPanel } from './components/PreviewPanel';
+
+// ============================================
+// THEMES & CUSTOMIZATION
+// ============================================
+export { themes, getThemeConfig, generateThemeCSS } from './themes';
 
 // ============================================
 // UTILS
@@ -62,6 +68,9 @@ export { COLORS, EMOJIS, DEFAULT_CONTENT } from './constants';
 // ============================================
 export type {
   Theme,
+  ThemeName,
+  PreviewPosition,
+  ThemeConfig,
   EditorCommand,
   EditorMeta,
   ToolbarGroup,
