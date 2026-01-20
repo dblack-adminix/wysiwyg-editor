@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { WysiwygEditor, EditorMeta, DEFAULT_CONTENT } from '../src';
+import { WysiwygEditor, EditorMeta, DEFAULT_CONTENT, PreviewPanel } from '../src';
 import { PreviewPanelTest } from './PreviewPanelTest';
 
 function App() {
@@ -224,6 +224,44 @@ function App() {
               fontSize: '13px'
             }}>
               🎨 <strong>Ожидается:</strong> Кнопки должны быть красными (#ff6b6b), фон тёмным (#1a1a2e)
+            </div>
+          </div>
+
+          {/* Headless Preview Panel Test */}
+          <div style={{ marginBottom: '48px', marginTop: '48px' }}>
+            <h2 style={{ color: 'white', marginBottom: '16px' }}>Headless Preview Panel (без встроенных стилей)</h2>
+            <p style={{ color: '#9ca3af', marginBottom: '16px' }}>
+              PreviewPanel в headless режиме — наследует стили от родительского сайта:
+            </p>
+            
+            {/* Пример с Bootstrap-подобными стилями */}
+            <div style={{
+              background: '#f8f9fa',
+              padding: '20px',
+              borderRadius: '8px',
+              fontFamily: 'Arial, sans-serif'
+            }}>
+              <PreviewPanel
+                html={html || '<p>Введите текст в редакторе выше...</p>'}
+                headless={true}
+                className=""
+                headerClassName=""
+                contentClassName=""
+                tabClassName=""
+                activeTabClassName=""
+                buttonClassName=""
+              />
+            </div>
+            
+            <div style={{ 
+              marginTop: '12px', 
+              padding: '12px', 
+              background: 'rgba(32, 201, 151, 0.1)',
+              borderRadius: '8px',
+              color: '#20c997',
+              fontSize: '13px'
+            }}>
+              ✅ <strong>Headless режим:</strong> Панель без встроенных стилей — вы можете стилизовать её как угодно через CSS классы
             </div>
           </div>
 

@@ -53,8 +53,9 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   const isMobile = useIsMobile();
   const shouldOptimizeForMobile = mobileOptimized && isMobile;
 
-  // Get theme configuration
-  const themeConfig = getThemeConfig(themeName === 'custom' ? 'custom' : themeName, customTheme);
+  // Get theme configuration - use 'custom' if customTheme is provided
+  const effectiveThemeName = customTheme ? 'custom' : themeName;
+  const themeConfig = getThemeConfig(effectiveThemeName, customTheme);
 
   const {
     editorRef,
@@ -86,15 +87,16 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   const codeBlockRootsRef = useRef<Map<Element, Root>>(new Map());
 
   const isLight = theme === 'light';
+
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Apply CSS variables to wrapper element
+  // Apply CSS variables locally to this editor's wrapper
   useEffect(() => {
     if (wrapperRef.current) {
       Object.entries(themeConfig).forEach(([key, value]) => {
         if (value) {
           const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-          wrapperRef.current?.style.setProperty(cssVarName, value);
+          wrapperRef.current!.style.setProperty(cssVarName, value);
         }
       });
     }
@@ -377,12 +379,6 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
           display: enablePreviewPanel && previewPosition === 'right' ? 'grid' : 'block',
           gridTemplateColumns: enablePreviewPanel && previewPosition === 'right' ? '1fr 1fr' : undefined,
         } as React.CSSProperties}
-        {...Object.fromEntries(
-          Object.entries(themeConfig).map(([key, value]) => [
-            `data-${key}`,
-            value
-          ])
-        )}
       >
         <div
           style={{

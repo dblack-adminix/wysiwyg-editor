@@ -5,20 +5,36 @@ import styles from '../WysiwygEditor.module.css';
 
 interface PreviewPanelProps {
   html: string;
-  theme: Theme;
-  onExportHtml: () => void;
-  onExportText: () => void;
-  onCopyHtml: () => void;
+  theme?: Theme;
+  onExportHtml?: () => void;
+  onExportText?: () => void;
+  onCopyHtml?: () => void;
   enableSourceTab?: boolean;
+  // Headless mode - no built-in styles
+  headless?: boolean;
+  // Custom class names for styling
+  className?: string;
+  headerClassName?: string;
+  contentClassName?: string;
+  tabClassName?: string;
+  activeTabClassName?: string;
+  buttonClassName?: string;
 }
 
 export function PreviewPanel({
   html,
-  theme,
+  theme = 'dark',
   onExportHtml,
   onExportText,
   onCopyHtml,
-  enableSourceTab = true
+  enableSourceTab = true,
+  headless = false,
+  className = '',
+  headerClassName = '',
+  contentClassName = '',
+  tabClassName = '',
+  activeTabClassName = '',
+  buttonClassName = '',
 }: PreviewPanelProps) {
   const [activeTab, setActiveTab] = useState<'preview' | 'source'>('preview');
   const previewRef = useRef<HTMLDivElement>(null);
@@ -80,12 +96,6 @@ export function PreviewPanel({
         const code = pre.querySelector('code');
         if (code) {
           navigator.clipboard.writeText(code.textContent || '');
-          // Show feedback
-          const originalContent = pre.style.getPropertyValue('--copy-feedback') || '📋';
-          pre.style.setProperty('--copy-feedback', '✓');
-          setTimeout(() => {
-            pre.style.setProperty('--copy-feedback', originalContent);
-          }, 2000);
         }
       }
     };
@@ -96,12 +106,77 @@ export function PreviewPanel({
     };
   }, [activeTab]);
 
+  // Headless mode - minimal markup, no styles
+  if (headless) {
+    return (
+      <div className={className} data-preview-panel>
+        {(onExportHtml || onExportText || onCopyHtml || enableSourceTab) && (
+          <div className={headerClassName} data-preview-header>
+            <div data-preview-tabs>
+              <button
+                className={`${tabClassName} ${activeTab === 'preview' ? activeTabClassName : ''}`}
+                onClick={() => setActiveTab('preview')}
+                data-tab="preview"
+                data-active={activeTab === 'preview'}
+              >
+                Предпросмотр
+              </button>
+              {enableSourceTab && (
+                <button
+                  className={`${tabClassName} ${activeTab === 'source' ? activeTabClassName : ''}`}
+                  onClick={() => setActiveTab('source')}
+                  data-tab="source"
+                  data-active={activeTab === 'source'}
+                >
+                  HTML код
+                </button>
+              )}
+            </div>
+            <div data-preview-actions>
+              {onExportHtml && (
+                <button className={buttonClassName} onClick={onExportHtml} data-action="export-html">
+                  Экспорт HTML
+                </button>
+              )}
+              {onExportText && (
+                <button className={buttonClassName} onClick={onExportText} data-action="export-text">
+                  Экспорт TXT
+                </button>
+              )}
+              {onCopyHtml && (
+                <button className={buttonClassName} onClick={onCopyHtml} data-action="copy-html">
+                  Копировать
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'preview' && (
+          <div
+            ref={previewRef}
+            className={contentClassName}
+            dangerouslySetInnerHTML={{ __html: html }}
+            data-preview-content
+          />
+        )}
+        
+        {activeTab === 'source' && (
+          <pre className={contentClassName} data-preview-source>
+            {html}
+          </pre>
+        )}
+      </div>
+    );
+  }
+
+  // Default styled mode (backward compatible)
   return (
-    <div className={`${styles.previewPanel} ${isLight ? styles.light : ''}`}>
-      <div className={styles.previewHeader}>
+    <div className={`${styles.previewPanel} ${isLight ? styles.light : ''} ${className}`}>
+      <div className={`${styles.previewHeader} ${headerClassName}`}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            className={`${styles.tabBtn} ${activeTab === 'preview' ? styles.active : ''}`}
+            className={`${styles.tabBtn} ${activeTab === 'preview' ? styles.active : ''} ${tabClassName}`}
             onClick={() => setActiveTab('preview')}
           >
             <i className="fas fa-eye" style={{ marginRight: '8px' }}></i>
@@ -109,7 +184,7 @@ export function PreviewPanel({
           </button>
           {enableSourceTab && (
             <button
-              className={`${styles.tabBtn} ${activeTab === 'source' ? styles.active : ''}`}
+              className={`${styles.tabBtn} ${activeTab === 'source' ? styles.active : ''} ${tabClassName}`}
               onClick={() => setActiveTab('source')}
             >
               <i className="fas fa-code" style={{ marginRight: '8px' }}></i>
@@ -118,43 +193,49 @@ export function PreviewPanel({
           )}
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            className={styles.toolbarBtn}
-            onClick={onExportHtml}
-            title="Экспорт HTML"
-            style={{ color: 'white' }}
-          >
-            <i className="fas fa-file-code"></i>
-          </button>
-          <button
-            className={styles.toolbarBtn}
-            onClick={onExportText}
-            title="Экспорт TXT"
-            style={{ color: 'white' }}
-          >
-            <i className="fas fa-file-alt"></i>
-          </button>
-          <button
-            className={styles.toolbarBtn}
-            onClick={onCopyHtml}
-            title="Копировать HTML"
-            style={{ color: 'white' }}
-          >
-            <i className="fas fa-copy"></i>
-          </button>
+          {onExportHtml && (
+            <button
+              className={`${styles.toolbarBtn} ${buttonClassName}`}
+              onClick={onExportHtml}
+              title="Экспорт HTML"
+              style={{ color: 'white' }}
+            >
+              <i className="fas fa-file-code"></i>
+            </button>
+          )}
+          {onExportText && (
+            <button
+              className={`${styles.toolbarBtn} ${buttonClassName}`}
+              onClick={onExportText}
+              title="Экспорт TXT"
+              style={{ color: 'white' }}
+            >
+              <i className="fas fa-file-alt"></i>
+            </button>
+          )}
+          {onCopyHtml && (
+            <button
+              className={`${styles.toolbarBtn} ${buttonClassName}`}
+              onClick={onCopyHtml}
+              title="Копировать HTML"
+              style={{ color: 'white' }}
+            >
+              <i className="fas fa-copy"></i>
+            </button>
+          )}
         </div>
       </div>
       
       {activeTab === 'preview' && (
         <div
           ref={previewRef}
-          className={`${styles.previewContent} ${isLight ? styles.light : ''}`}
+          className={`${styles.previewContent} ${isLight ? styles.light : ''} ${contentClassName}`}
           dangerouslySetInnerHTML={{ __html: html }}
         />
       )}
       
       {activeTab === 'source' && (
-        <pre className={`${styles.sourceCode} ${styles.show}`}>
+        <pre className={`${styles.sourceCode} ${styles.show} ${contentClassName}`}>
           {html}
         </pre>
       )}
