@@ -1,4 +1,9 @@
 // ============================================
+// GLOBAL STYLES
+// ============================================
+import './WysiwygEditor.global.css';
+
+// ============================================
 // HEADLESS CORE (Pure JS/TS, NO React)
 // ============================================
 export { EditorCore } from './core/EditorCore';

@@ -14,7 +14,6 @@ import { VideoModal } from './VideoModal';
 import { TableModal } from './TableModal';
 import { PrintModal } from './PrintModal';
 import { CodeBlock } from './CodeBlock';
-import styles from '../WysiwygEditor.module.css';
 
 export function WysiwygEditor(props: WysiwygEditorProps) {
   const {
@@ -366,7 +365,7 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
   return (
     <>
       <div
-        className={`${styles.editorWrapper} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''} ${customClassName} ${className}`}
+        className={`wysiwyg-editor-wrapper ${isLight ? 'light' : ''} ${isFullscreen ? 'fullscreen' : ''} ${customClassName} ${className}`}
         style={{
           ...style,
           ...customStyles,
@@ -413,7 +412,7 @@ export function WysiwygEditor(props: WysiwygEditorProps) {
 
           <div
             ref={editorRef}
-            className={`${styles.editorContent} ${isLight ? styles.light : ''} ${isFullscreen ? styles.fullscreen : ''}`}
+            className={`wysiwyg-editor-content ${isLight ? 'light' : ''} ${isFullscreen ? 'fullscreen' : ''}`}
             style={{ outline: 'none', flex: 1, overflow: 'auto' }}
           />
 
