@@ -20,6 +20,7 @@
 - 🎨 **Полная кастомизация** — настройка через props
 - 📦 **Без зависимостей** — только React peer dependency
 - 💻 **Автоопределение кода** — автоматическая подсветка синтаксиса при вставке кода
+- 💬 **ChatEditor** — компактный редактор для чатов и мессенджеров
 
 ## 📦 Установка
 
@@ -92,6 +93,70 @@ function App() {
   );
 }
 ```
+
+## 💬 ChatEditor — компактный редактор для чатов
+
+Специальный компонент для мессенджеров и чатов с минимальным интерфейсом:
+
+```tsx
+import { ChatEditor } from 'wysiwyg-editor-3lab';
+import 'wysiwyg-editor-3lab/style.css';
+
+function Chat() {
+  return (
+    <ChatEditor
+      placeholder="Введите сообщение..."
+      onSubmit={(html) => {
+        console.log('Отправлено:', html);
+        // Отправка на сервер
+      }}
+      submitOnCtrlEnter={true}
+      enableEmoji={true}
+      enableBold={true}
+      enableItalic={true}
+      enableCode={true}
+      enableLink={true}
+      enableTextColor={true}
+      enableBgColor={true}
+      enableImage={true}
+      enableVideo={true}
+      enableTable={true}
+      maxHeight={150}
+    />
+  );
+}
+```
+
+### ChatEditor Props
+
+| Prop | Type | Default | Описание |
+|------|------|---------|----------|
+| `value` | `string` | - | HTML контент (controlled) |
+| `defaultValue` | `string` | - | Начальный HTML (uncontrolled) |
+| `onChange` | `(html: string, meta: EditorMeta) => void` | - | Callback при изменении |
+| `onSubmit` | `(html: string) => void` | - | Callback при отправке |
+| `placeholder` | `string` | `"Введите сообщение..."` | Placeholder текст |
+| `theme` | `"dark" \| "light"` | `"dark"` | Тема оформления |
+| `maxHeight` | `number \| string` | `200` | Максимальная высота |
+| `minHeight` | `number \| string` | `40` | Минимальная высота |
+| `enableEmoji` | `boolean` | `true` | Эмодзи пикер |
+| `enableBold` | `boolean` | `true` | Жирный текст |
+| `enableItalic` | `boolean` | `true` | Курсив |
+| `enableUnderline` | `boolean` | `false` | Подчёркивание |
+| `enableStrike` | `boolean` | `false` | Зачёркивание |
+| `enableLink` | `boolean` | `true` | Вставка ссылок |
+| `enableCode` | `boolean` | `true` | Блок кода |
+| `enableList` | `boolean` | `false` | Списки |
+| `enableTextColor` | `boolean` | `false` | Цвет текста |
+| `enableBgColor` | `boolean` | `false` | Цвет фона |
+| `enableImage` | `boolean` | `false` | Вставка изображений |
+| `enableVideo` | `boolean` | `false` | Вставка видео |
+| `enableTable` | `boolean` | `false` | Вставка таблиц |
+| `onImageUpload` | `(file: File) => Promise<string>` | - | Кастомный загрузчик изображений |
+| `submitOnEnter` | `boolean` | `false` | Отправка по Enter |
+| `submitOnCtrlEnter` | `boolean` | `true` | Отправка по Ctrl+Enter |
+| `submitButtonText` | `string` | `"Отправить"` | Текст кнопки |
+| `showSubmitButton` | `boolean` | `true` | Показать кнопку отправки |
 
 ## 🎨 Кастомизация
 

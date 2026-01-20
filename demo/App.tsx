@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { WysiwygEditor, EditorMeta, DEFAULT_CONTENT, PreviewPanel } from '../src';
+import { WysiwygEditor, EditorMeta, DEFAULT_CONTENT, PreviewPanel, ChatEditor } from '../src';
 import { PreviewPanelTest } from './PreviewPanelTest';
 
 function App() {
@@ -136,6 +136,48 @@ function App() {
               💡 <strong>Совет:</strong> Нажмите на кнопку видео, выберите "Загрузить файл" и выберите видео с вашего компьютера.
               <br />
               ⚠️ <strong>Примечание:</strong> В демо используется data URL. Для продакшена настройте загрузку на сервер (см. VIDEO_UPLOAD_EXAMPLE.md)
+            </div>
+          </div>
+
+          {/* Chat Editor */}
+          <div style={{ marginBottom: '48px' }}>
+            <h2 style={{ color: 'white', marginBottom: '16px' }}>💬 Chat Editor (компактный для чатов)</h2>
+            <p style={{ color: '#9ca3af', marginBottom: '16px' }}>
+              Урезанный редактор для мессенджеров и чатов — минимальный тулбар, компактный размер
+            </p>
+            <div style={{ maxWidth: '500px' }}>
+              <ChatEditor
+                placeholder="Введите сообщение..."
+                onSubmit={(html) => {
+                  console.log('Отправлено:', html);
+                  alert('Сообщение отправлено! (см. консоль)');
+                }}
+                submitOnCtrlEnter={true}
+                enableEmoji={true}
+                enableBold={true}
+                enableItalic={true}
+                enableCode={true}
+                enableLink={true}
+                enableTextColor={true}
+                enableBgColor={true}
+                enableImage={true}
+                enableVideo={true}
+                enableTable={true}
+                maxHeight={150}
+              />
+            </div>
+            <div style={{ 
+              marginTop: '12px', 
+              padding: '12px', 
+              background: 'rgba(99, 102, 241, 0.1)',
+              borderRadius: '8px',
+              color: '#a0a0b0',
+              fontSize: '13px',
+              maxWidth: '500px'
+            }}>
+              💡 <strong>Ctrl+Enter</strong> для отправки | <strong>Ctrl+B</strong> жирный | <strong>Ctrl+I</strong> курсив
+              <br />
+              🎨 Цвет текста/фона | 🖼️ Картинки | 🎬 Видео | 📊 Таблицы
             </div>
           </div>
 

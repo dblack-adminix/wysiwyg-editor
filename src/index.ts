@@ -36,6 +36,7 @@ export type { UseWysiwygEditorOptions, UseWysiwygEditorReturn } from './hooks/us
 // ============================================
 export { WysiwygEditor } from './components/WysiwygEditor';
 export { PreviewPanel } from './components/PreviewPanel';
+export { ChatEditor } from './components/ChatEditor';
 
 // ============================================
 // THEMES & CUSTOMIZATION
