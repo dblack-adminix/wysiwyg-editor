@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Paste Detection</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    #editor { 
+      border: 2px solid #333; 
+      padding: 20px; 
+      min-height: 200px;
+      background: #1e1e2e;
+      color: #e0e0e0;
+    }
+    #log { 
+      margin-top: 20px; 
+      padding: 10px; 
+      background: #f0f0f0; 
+      border: 1px solid #ccc;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log-entry { margin: 5px 0; }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+  </style>
+</head>
+<body>
+  <h1>Paste Detection Debug</h1>
+  <p>Вставьте код в редактор ниже (Ctrl+V)</p>
+  
+  <div id="editor" contenteditable="true" data-placeholder="Вставьте код сюда..."></div>
+  
+  <div id="log">
+    <div class="log-entry info">Ожидание вставки...</div>
+  </div>
+
+  <script type="module">
+    const editor = document.getElementById('editor');
+    const log = document.getElementById('log');
+
+    function addLog(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    editor.addEventListener('paste', (e) => {
+      addLog('Paste event detected!', 'success');
+      
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) {
+        addLog('No clipboard data', 'error');
+        return;
+      }
+
+      const text = clipboardData.getData('text/plain');
+      addLog(`Text length: ${text.length}`, 'info');
+      addLog(`First 100 chars: ${text.substring(0, 100)}`, 'info');
+
+      // Простая проверка на код
+      const hasCode = /\{|\}|\(|\)|function|const|let|var|class|def|provider|resource/.test(text);
+      addLog(`Looks like code: ${hasCode}`, hasCode ? 'success' : 'error');
+
+      if (hasCode && text.length > 20) {
+        addLog('Would insert as code block', 'success');
+        // e.preventDefault(); // Раскомментируйте чтобы предотвратить вставку
+      } else {
+        addLog('Would insert as plain text', 'info');
+      }
+    });
+
+    addLog('Ready! Paste some code...', 'success');
+  </script>
+</body>
+</html>

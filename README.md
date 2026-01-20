@@ -93,6 +93,44 @@ function App() {
 }
 ```
 
+## 🎨 Кастомизация
+
+### Встроенные темы
+
+```tsx
+<WysiwygEditor themeName="dark" />      // Темная тема
+<WysiwygEditor themeName="light" />     // Светлая тема
+<WysiwygEditor themeName="minimal" />   // Минималистичная
+<WysiwygEditor themeName="colorful" />  // Яркая
+```
+
+### Пользовательские цвета
+
+```tsx
+<WysiwygEditor
+  themeName="custom"
+  customTheme={{
+    primary: '#ff6b6b',
+    bgPrimary: '#fff5f5',
+    textPrimary: '#2d3748',
+    borderRadius: '8px',
+  }}
+/>
+```
+
+### Управление панелью предпросмотра
+
+```tsx
+<WysiwygEditor
+  enablePreviewPanel={true}
+  previewPosition="right"        // 'right' | 'bottom' | 'none'
+  previewWidth={400}
+  previewHeight={600}
+/>
+```
+
+Подробнее в [CUSTOMIZATION_GUIDE.md](./CUSTOMIZATION_GUIDE.md) и [INTEGRATION_EXAMPLES.md](./INTEGRATION_EXAMPLES.md)
+
 ## 📖 API
 
 ### WysiwygEditor Props
